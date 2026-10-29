@@ -161,6 +161,10 @@ for f in sorted(glob.glob(os.path.join(SRC, "p-*.html"))):
     # compare + upsell on single-estate and blend pages
     if h in ESTATES or h in BLENDS:
         s = s.replace("\n\n<section>\n  <div class=\"wrap\">\n    <h2 class=\"cgroup\">On the estate</h2>", "\n" + COMPARE + "\n<section>\n  <div class=\"wrap\">\n    <h2 class=\"cgroup\">On the estate</h2>", 1)
+    # picture + thumbnails in one block (the block is what sticks on desktop)
+    a = s.index('<figure class="pdp__fig">'); b = s.index('</figure>', a) + len('</figure>')
+    m = re.match(r'\s*<div class="pdp__thumbs".*?</div>', s[b:], re.S); e = b + (m.end() if m else 0)
+    s = s[:a] + '<div class="pdp__media">\n    ' + s[a:e] + '\n    </div>' + s[e:]
     open(f, "w").write(s)
     done.append(h)
 print("upgraded:", ", ".join(done))

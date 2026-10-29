@@ -1849,3 +1849,12 @@ body{overflow-y:visible}
 .pcompare__c--up span{color:rgba(242,239,233,.78)}
 @media (hover:hover){ .pcompare__c:hover{transform:translateY(-2px); box-shadow:0 12px 28px -18px rgba(0,22,31,.5)} }
 .sticky__p small{display:block; font-family:var(--sans); font-size:.72rem; color:inherit; opacity:.75; letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:52vw}
+/* picture + thumbnails travel together; the pair is what sticks on desktop */
+.pdp__media{min-width:0}
+@media (min-width:900px){ .pdp__fig{position:relative; top:auto} .pdp__media{position:sticky; top:calc(var(--hdr) + 1.5rem); align-self:start} }
+.pdp__pack[data-mode="photo"]{position:absolute; inset:0; width:100%; height:100%; max-width:none; object-fit:cover; z-index:3; padding:0}
+.pdp__fig:not(:has(.pdp__bg)){background:radial-gradient(120% 90% at 50% 35%,#FBF9F4 0,#ECE6DA 75%)}
+.pdp__fig:not(:has(.pdp__bg))::after{display:none}
+.pdp__fig:not(:has(.pdp__bg)) .pdp__pack:not([data-mode="photo"]){width:min(70%,380px); filter:drop-shadow(0 18px 28px rgba(0,22,31,.22))}
+/* the bio's bullet list belongs in the text column, not under the 104px photo */
+@media (min-width:560px){ .person > .ticks{grid-column:2} }
