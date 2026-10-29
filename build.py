@@ -13,7 +13,7 @@ OUT = HERE
 SRC = os.path.join(HERE, "_src_pages")
 
 # where this build is actually served from — used for canonical + og:url
-BASE = "https://thecozycod3r.github.io/cauvery-peak-homepage"
+BASE = "https://thecozycod3r.github.io/cauvery-peak-v2"
 
 # The nav carries the story. The three things we want people to DO are
 # buttons, not nav items — "Coffee" and "Shop" used to be two doors to the
@@ -110,6 +110,8 @@ def header(active):
     links = "\n".join(
         f'      <a href="{href}"{" aria-current=\"page\"" if href == active else ""}>{label}</a>'
         for label, href in NAV)
+    # every store page counts as the shop, except the tour (sold as a product)
+    shop_section = (active.startswith(("shop", "p-")) and active not in NAV_SECTION) or active == "subscribe.html"
     return f'''<a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="top__in">
@@ -118,13 +120,14 @@ def header(active):
     </a>
     <nav class="top__nav" aria-label="Main">
 {links}
+      <a class="top__buy" href="{ACT_SHOP[1]}"{" aria-current=\"page\"" if shop_section else ""}><span>Buy coffee</span></a>
     </nav>
     <button class="burger" type="button" id="burger" aria-expanded="false" aria-controls="sitemenu">
       <span class="burger__box" aria-hidden="true"><i></i><i></i><i></i></span>
       <span class="burger__t">Menu</span>
     </button>
     <div class="top__act">
-      <a class="btn btn--fill btn--sm top__cta" href="{ACT_SHOP[1]}">{ACT_SHOP[0]}</a>
+      <a class="btn btn--fill btn--sm top__cta" href="{ACT_BOOK[1]}">Book the tour</a>
       <a class="iconbtn" href="search.html" aria-label="Search"{' aria-current="page"' if active == "search.html" else ""}>
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></svg>
       </a>
@@ -132,7 +135,7 @@ def header(active):
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
         <b class="num">0</b>
       </a>
-      <button class="cartbtn" type="button" id="cartbtn" hidden>Basket <b class="num">0</b></button>
+      <button class="cartbtn" type="button" id="cartbtn" aria-label="Basket, 0 items">Basket <b class="num">0</b></button>
     </div>
   </div>
 </header>'''
@@ -254,7 +257,7 @@ CLOSERS = {
                       "Nothing is roasted before an order exists, which is why it does not sit in a warehouse.",
                       SHOP, BOOK),
  "cafe-cauvery-peak.html": ("While you are here", "Walk the estate<br>behind the café.",
-                      "The Coffee Experience Tour starts where you are sitting &mdash; seventy-five minutes through the mills and the roasting room.",
+                      "The Coffee Experience Tour starts where you are sitting &mdash; ninety minutes through the mills and the roasting room.",
                       BOOK, SHOP),
  "cafe-lake-view.html": ("Fifteen kilometres on", "The coffee comes<br>from up the road.",
                       "The estate itself is a short drive from here, and the tour runs from the plantation café.",
@@ -263,7 +266,7 @@ CLOSERS = {
                       "Glenfell is the lowest of the three estates. Cauvery Peak, where the tour runs, is up the hill.",
                       VISIT, SHOP),
  "bbc-news-tamil.html": ("You have seen the film", "Now take the tour.",
-                      "Seventy-five minutes, &#8377;600 a person, in your own vehicle with a coffee guide: the wet mill, the dry mill, roasting and grinding, the estate museum, and the caf&eacute; to finish. Closed Tuesdays.",
+                      "Ninety minutes, &#8377;600 a person, in your own vehicle with a coffee guide: the wet mill, the dry mill, roasting and grinding, the estate museum, and the caf&eacute; to finish. Closed Tuesdays.",
                       BOOK, SHOP),
  "careers.html":     ("Meanwhile", "See the place first.",
                       "The best way to know whether you want to work here is to walk it.",
@@ -320,10 +323,10 @@ CART = '''<div class="cart" id="cart">
     </div>
     <div class="cart__body" data-clines></div>
     <div class="cart__foot">
-      <p class="cart__ship"><span>Shipping</span><b>Free across India</b></p>
+      <p class="cart__ship" data-cgoods><span>Shipping</span><b>Free across India</b></p>
       <p class="cart__sum"><span>Total</span><b class="num" data-ctotal>&#8377;0</b></p>
       <a class="btn btn--gold" data-ccheckout href="https://cauverypeakestate.com/collections/all">Secure checkout</a>
-      <p class="buy__note" style="margin:0">Roasted after you order and dispatched in 3&ndash;5 business days. Payment is taken on the estate&rsquo;s Shopify checkout.</p>
+      <p class="buy__note" style="margin:0" data-cnote>Payment is taken on the estate&rsquo;s Shopify checkout.</p>
     </div>
   </div>
 </div>'''
@@ -345,20 +348,27 @@ STICKY_JS = """<script>
 
 STICKY = f'''<div class="sticky">
   <a class="btn btn--gold" href="{ACT_SHOP[1]}">{ACT_SHOP[0]}</a>
-  <a class="btn btn--ghost" href="{ACT_BOOK[1]}">{ACT_BOOK[0]}</a>
+  <a class="btn btn--ghost" href="{ACT_BOOK[1]}">Book the tour</a>
 </div>'''
 
 STICKY_BUY = '''<div class="sticky sticky--buy">
   <p class="sticky__p num" data-sticky-price></p>
   <button class="btn btn--gold" type="button" data-sticky-add>Add to cart</button>
 </div>'''
-STICKY_BUY_JS = """<script>
+STICKY_BUY_JS = r"""<script>
 (function(){
   var bar=document.querySelector('.sticky--buy'), add=document.querySelector('.pdp [data-add]'),
       price=document.querySelector('.pdp [data-price]'), out=bar&&bar.querySelector('[data-sticky-price]');
   if(!bar||!add||!price) return;
   var btn=bar.querySelector('[data-sticky-add]'); btn.textContent=add.textContent;
-  function sync(){ out.textContent=price.textContent }
+  var form=document.querySelector('.pdp .buy');
+  function sync(){
+    var bits=[]; if(form) form.querySelectorAll('input[name^="o"]:checked, select[name^="o"]').forEach(function(e){
+      var v=(e.value||'').replace(/\s*\([^)]*\)/g,''); if(v&&v!=='Default Title') bits.push(v==='Whole Beans'?'Whole beans':v); });
+    out.innerHTML=''; out.appendChild(document.createTextNode(price.textContent));
+    if(bits.length){ var sm=document.createElement('small'); sm.textContent=bits.join(' · '); out.appendChild(sm); }
+  }
+  if(form) form.addEventListener('change', function(){ setTimeout(sync,0) });
   sync(); new MutationObserver(sync).observe(price,{childList:true,characterData:true,subtree:true});
   btn.addEventListener('click',function(){ add.click() });
   // on only once the real button is above the viewport. A scroll check, not an
@@ -371,74 +381,165 @@ STICKY_BUY_JS = """<script>
 })();
 </script>"""
 
+# Live price + availability for every variant, from the catalogue, so a basket
+# saved days ago is re-priced (and sold-out lines flagged) before checkout.
+def _price_map():
+    cat = json.load(open(os.path.join(SRC, "catalog.json")))
+    return json.dumps({str(v["id"]): [v["p"], 1 if v["av"] else 0] for p in cat for v in p["variants"]}, separators=(",", ":"))
+PRICE_MAP = "<script>window.CPV=%s</script>" % _price_map()
+
 # Small enough to inline. Runs on every page; the drawer is inert until opened.
 
 SHOP_JS = r"""<script>
 (function(){
-  var KEY='cp-basket', STORE='https://cauverypeakestate.com';
+  var KEY='cp-basket', STORE='https://cauverypeakestate.com', TOUR='coffee-experience-tours-11';
   var read=function(){ try{ return JSON.parse(localStorage.getItem(KEY))||[] }catch(e){ return [] } };
-  var write=function(v){ localStorage.setItem(KEY, JSON.stringify(v)); paint(); };
-  var inr=function(n){ return '\u20B9'+n.toLocaleString('en-IN'); };
+  var write=function(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)) }catch(e){} paint(); };
+  var inr=function(n){ return '₹'+Math.round(n).toLocaleString('en-IN'); };
+  var CPV=window.CPV||{};
+  var esc=function(t){ var d=document.createElement('div'); d.textContent=t==null?'':String(t); return d.innerHTML; };
+  // one place that puts a variant in the basket
+  function addLine(v, t, o, h, img, q, a){
+    var b=read(), hit=b.filter(function(l){ return l.id===v.id && JSON.stringify(l.a||null)===JSON.stringify(a||null) })[0];
+    if(hit) hit.q+=q||1; else b.push({id:v.id,q:q||1,p:v.p,t:t,o:o,h:h,i:img||'',a:a||null});
+    write(b); open();
+  }
+  function grams(s){
+    var m=/([\d.]+)\s*(kg|g|gm)\b/i.exec(s||''); if(!m) return 0;
+    var n=parseFloat(m[1])*(/kg/i.test(m[2])?1000:1), k=/x\s*(\d+)/i.exec(s||''); return n*(k?parseInt(k[1],10):1);
+  }
+  var pretty=function(x){ return (x||'').replace(/\s*\([^)]*\)/g,'') };
 
-  // ---- product / subscription forms -------------------------------
+  // ---- product page forms ----------------------------------------
   document.querySelectorAll('.pdp[data-variants]').forEach(function(scope){
     var vs, form=scope.querySelector('.buy');
     try{ vs=JSON.parse(scope.getAttribute('data-variants')) }catch(e){ return }
     if(!form||!vs) return;
-    var out=scope.querySelector('[data-price]'), unit=scope.querySelector('[data-unit]');
-    var save=scope.querySelector('[data-save]'), singles=null;
+    var out=scope.querySelector('[data-price]'), unit=scope.querySelector('[data-unit]'), per=scope.querySelector('[data-per]');
+    var save=scope.querySelector('[data-save]'), singles=null, add=form.querySelector('[data-add]');
+    var label=add?add.textContent:'Add to cart';
     try{ singles=JSON.parse(scope.getAttribute('data-singles')||'null') }catch(e){}
     var handle=scope.getAttribute('data-handle'), title=scope.getAttribute('data-title');
+    var pack=scope.querySelector('.pdp__pack'), img=pack?pack.getAttribute('src'):'';
     function chosen(){
       return [1,2,3].map(function(i){
-        var el=form.querySelector('input[name="o'+i+'"]:checked');
+        var el=form.querySelector('input[name="o'+i+'"]:checked')||form.querySelector('select[name="o'+i+'"]');
         return el?el.value:null;
       });
     }
     function match(){
       var c=chosen();
-      return vs.filter(function(v){
-        return c.every(function(x,i){ return x===null || v.o[i]===x; });
-      })[0];
-    }
-    function kilos(s){
-      if(!s) return 0;
-      var m=/([\d.]+)\s*kg/i.exec(s); if(m) return parseFloat(m[1]);
-      m=/([\d.]+)\s*(gm|g)\b/i.exec(s); if(m) return parseFloat(m[1])/1000;
-      return 0;
+      return vs.filter(function(v){ return c.every(function(x,i){ return x===null || v.o[i]===x; }); })[0];
     }
     function months(s){ var m=/(\d+)\s*month/i.exec(s||''); return m?parseInt(m[1],10):0; }
     function paintPrice(){
-      var v=match(); if(!v) return;
+      var v=match();
+      if(add){ var ok=!!(v&&v.av!==false); add.disabled=!ok; add.textContent=ok?label:'Sold out'; }
+      if(!v) return;
       out.textContent=inr(v.p);
+      scope.querySelectorAll('[data-price-mirror]').forEach(function(e){ e.textContent=inr(v.p) });
+      var c=chosen(), g=0; c.forEach(function(x){ g=g||grams(x) });
+      if(per) per.textContent = g && !months(c[0]) ? inr(v.p*100/g)+' per 100 g' : '';
       if(unit){
-        var c=chosen(), kg=kilos(c[2]), mo=months(c[0]);
-        unit.textContent = (kg&&mo) ? inr(Math.round(v.p/(kg*mo)))+' per kg · '+mo+' months' : '';
+        var kg=grams(c[2])/1000, mo=months(c[0]);
+        unit.textContent = (kg&&mo) ? inr(v.p/(kg*mo))+' per kg · '+mo+' months' : '';
       }
-      // what the term saves against buying the same bag every month
       if(save){
-        var c2=chosen(), one=singles&&singles[c2[1]]&&singles[c2[1]][c2[2]], m2=months(c2[0]);
+        var one=singles&&singles[c[1]]&&singles[c[1]][c[2]], m2=months(c[0]);
         var d=one&&m2 ? one*m2-v.p : 0;
-        save.textContent = d>0 ? 'Saves '+inr(Math.round(d))+' ('+Math.round(100*d/(one*m2))+'%) against '+m2+' single bags' : '';
+        save.textContent = d>0 ? 'Saves '+inr(d)+' ('+Math.round(100*d/(one*m2))+'%) against '+m2+' single packs' : '';
       }
-      // strike through combinations the store has no variant for
+      // mark choices the store has no live variant for
       form.querySelectorAll('.opt').forEach(function(l){
-        var inp=l.querySelector('input'), i=parseInt(inp.name.slice(1),10)-1;
+        var inp=l.querySelector('input'); if(!/^o\d$/.test(inp.name)) return;
+        var i=parseInt(inp.name.slice(1),10)-1;
         var probe=chosen(); probe[i]=inp.value;
-        var ok=vs.some(function(v){ return probe.every(function(x,j){ return x===null||v.o[j]===x }) });
+        var ok=vs.some(function(v){ return v.av!==false && probe.every(function(x,j){ return x===null||v.o[j]===x }) });
         if(ok) l.removeAttribute('data-out'); else l.setAttribute('data-out','');
       });
     }
+    // whole beans vs ground: the brew-method list only matters once 'Ground' is chosen
+    var gsel=form.querySelector('[data-gselect]'), gwrap=form.querySelector('[data-gsel]'), lastGround=gsel?gsel.value:null;
+    function gmode(){
+      if(!gsel) return; var m=form.querySelector('[name="gmode"]:checked'), ground=m&&m.value==='ground';
+      gwrap.hidden=!ground;
+      if(ground){ if(gsel.value==='Whole Beans') gsel.value=lastGround&&lastGround!=='Whole Beans'?lastGround:'Indian Filter'; }
+      else { if(gsel.value!=='Whole Beans') lastGround=gsel.value; gsel.value='Whole Beans'; }
+    }
+    form.querySelectorAll('[name="gmode"]').forEach(function(r){ r.addEventListener('change', function(){ gmode(); paintPrice(); }) });
+    gmode();
+    // quantity stepper
+    var qty=form.querySelector('[name="qty"]');
+    form.querySelectorAll('[data-qd]').forEach(function(b){ b.addEventListener('click', function(){
+      qty.value=Math.max(1,Math.min(20,(parseInt(qty.value,10)||1)+parseInt(b.getAttribute('data-qd'),10))); }) });
+    // tour: no past dates
+    var td=form.querySelector('[name="tdate"]');
+    if(td){ var t=new Date(); td.min=new Date(t.getTime()-t.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+      td.addEventListener('change', function(){ var e=form.querySelector('[data-terr]'); if(e) e.textContent=td.value&&new Date(td.value+'T12:00').getDay()===2?'The estate is closed on Tuesdays. Choose another day.':''; }); }
+    // gallery thumbnails
+    var main=scope.querySelector('[data-gmain]');
+    scope.querySelectorAll('[data-gimg]').forEach(function(th){ th.addEventListener('click', function(){
+      if(!main) return; main.src=th.getAttribute('data-gimg'); main.setAttribute('data-mode', th.getAttribute('data-gmode'));
+      scope.querySelectorAll('[data-gimg]').forEach(function(x){ x.classList.toggle('is-on', x===th); if(x===th) x.setAttribute('aria-current','true'); else x.removeAttribute('aria-current'); });
+    }) });
     form.addEventListener('change', paintPrice);
+    form.addEventListener('input', paintPrice);
     paintPrice();
-    var add=form.querySelector('[data-add]');
     if(add) add.addEventListener('click', function(){
-      var v=match(); if(!v) return;
-      var b=read(), hit=b.filter(function(l){ return l.id===v.id })[0];
-      if(hit) hit.q++; else b.push({id:v.id,q:1,p:v.p,t:title,o:chosen().filter(Boolean).join(' · '),h:handle});
-      write(b); open();
+      var v=match(); if(!v||v.av===false) return;
+      var q=1, a=null, qty=form.querySelector('[name="qty"]');
+      if(qty) q=Math.max(1,Math.min(20,parseInt(qty.value,10)||1));
+      if(handle===TOUR){
+        var d=form.querySelector('[name="tdate"]'), sl=form.querySelector('[name="tslot"]:checked'), err=form.querySelector('[data-terr]');
+        var msg=!d||!d.value?'Choose a date.':(new Date(d.value+'T12:00').getDay()===2?'The estate is closed on Tuesdays. Choose another day.':(!sl?'Choose a departure.':''));
+        if(err) err.textContent=msg;
+        if(msg){ (d&&!d.value?d:(sl?d:form.querySelector('[name="tslot"]'))).focus(); return; }
+        a={date:d.value, slot:sl.value};
+      }
+      var o=chosen().filter(function(x){ return x && x!=='Default Title' }).map(pretty).join(' · ');
+      if(a) o=new Date(a.date+'T12:00').toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})+' · '+a.slot;
+      addLine(v, title, o, handle, img, q, a);
     });
   });
+
+  // ---- shop cards: buy without leaving the grid ---------------------
+  document.querySelectorAll('.pc[data-v]').forEach(function(card){
+    var vs; try{ vs=JSON.parse(card.getAttribute('data-v')) }catch(e){ return }
+    var form=card.querySelector('.pc__buy'), btn=card.querySelector('[data-qadd]'), price=card.querySelector('[data-qprice]'), per=card.querySelector('[data-per]');
+    function chosen(){
+      return [1,2,3].map(function(i){
+        var el=form.querySelector('[name="o'+i+'"]:checked')||form.querySelector('select[name="o'+i+'"],input[type=hidden][name="o'+i+'"]');
+        return el?el.value:null;
+      });
+    }
+    function match(){ var c=chosen(); return vs.filter(function(v){ return c.every(function(x,i){ return x===null||v.o[i]===x }) })[0]; }
+    function sync(){
+      var v=match(), ok=!!(v&&v.av);
+      btn.disabled=!ok; price.textContent=ok?inr(v.p):'Sold out';
+      btn.firstChild.nodeValue=ok?'Add ':'';
+      if(per){ var g=0; chosen().forEach(function(x){ g=g||grams(x) }); per.textContent=ok&&g?inr(v.p*100/g)+' / 100 g':''; }
+    }
+    form.addEventListener('change', sync); sync();
+    btn.addEventListener('click', function(){
+      var v=match(); if(!v||!v.av) return;
+      var o=chosen().filter(function(x){ return x && x!=='Default Title' }).map(pretty).join(' · ');
+      addLine(v, card.getAttribute('data-title'), o, card.getAttribute('data-handle'), card.getAttribute('data-img'));
+      btn.classList.add('is-added'); setTimeout(function(){ btn.classList.remove('is-added') }, 1400);
+    });
+  });
+
+  // ---- shop taste filter ------------------------------------------
+  var chips=document.querySelectorAll('[data-filter]');
+  if(chips.length){
+    var cards=[].slice.call(document.querySelectorAll('.pgrid--coffee .pc')), fc=document.querySelector('[data-fcount]');
+    chips.forEach(function(ch){ ch.addEventListener('click', function(){
+      var k=ch.getAttribute('data-filter'), n=0;
+      chips.forEach(function(c){ c.setAttribute('aria-pressed', c===ch?'true':'false') });
+      cards.forEach(function(c){ var on=!k||(' '+c.getAttribute('data-tags')+' ').indexOf(' '+k+' ')>-1; c.hidden=!on; if(on) n++; });
+      document.querySelectorAll('.pgrid--coffee').forEach(function(g){ var s=g.closest('.ssec'); if(s) s.hidden=![].some.call(g.children,function(c){ return !c.hidden }) });
+      if(fc) fc.textContent=k?n+' coffee'+(n===1?'':'s')+' match.':'';
+    }); });
+  }
 
   // ---- wishlist ----------------------------------------------------
   // Kept in this browser only. Same pattern as the basket: no account, no server.
@@ -498,37 +599,75 @@ SHOP_JS = r"""<script>
   // ---- basket ------------------------------------------------------
   var cart=document.getElementById('cart'); if(!cart) return;
   var lines=cart.querySelector('[data-clines]'), total=cart.querySelector('[data-ctotal]');
-  var go=cart.querySelector('[data-ccheckout]');
+  var go=cart.querySelector('[data-ccheckout]'), goods=cart.querySelector('[data-cgoods]'), note=cart.querySelector('[data-cnote]');
   var btn=document.getElementById('cartbtn'), count=btn?btn.querySelector('b'):null, last=null;
+  // re-price from the live catalogue; flag anything the store no longer sells
+  function refresh(b){
+    var changed=false;
+    b.forEach(function(l){ var c=CPV[String(l.id)]; if(!c) return;
+      if(c[0]!==l.p){ l.was=l.p; l.p=c[0]; changed=true }
+      var off=!c[1]; if(off!==!!l.off){ l.off=off; changed=true } });
+    if(changed) try{ localStorage.setItem(KEY, JSON.stringify(b)) }catch(e){}
+    return b;
+  }
   function paint(){
-    var b=read(), sum=0;
-    lines.innerHTML = b.length ? '' : '<p class="cart__empty">Nothing in the basket yet. <a href="shop.html">Shop coffee</a></p>';
+    var b=refresh(read()), sum=0, n=0, hasGoods=false, live=b.filter(function(l){ return !l.off });
+    lines.innerHTML = b.length ? '' : '<p class="cart__empty">Nothing in the basket yet. <a href="shop.html">Shop coffee</a> or <a href="p-coffee-experience-tours-11.html">book the tour</a>.</p>';
     b.forEach(function(l,i){
-      sum += l.p*l.q;
-      var el=document.createElement('div'); el.className='cart__line';
-      el.innerHTML='<p class="cart__t">'+l.t+'</p><p class="cart__p num">'+inr(l.p*l.q)+'</p>'
-        +'<p class="cart__o">'+(l.o||'').replace(/\s*\([^)]*\)/g,'')+(l.q>1?' · x'+l.q:'')+'</p>';
-      var rm=document.createElement('button');
-      rm.type='button'; rm.className='cart__rm'; rm.textContent='Remove';
-      rm.addEventListener('click', function(){ var c=read(); c.splice(i,1); write(c); });
-      el.appendChild(rm); lines.appendChild(el);
+      if(!l.off){ sum += l.p*l.q; n += l.q; if(l.h!==TOUR) hasGoods=true; }
+      var el=document.createElement('div'); el.className='cart__line'+(l.off?' is-off':'');
+      var href=l.h?'p-'+l.h+'.html':'shop.html';
+      el.innerHTML=(l.i?'<a class="cart__img" href="'+href+'" tabindex="-1" aria-hidden="true"><img src="'+esc(l.i)+'" alt=""></a>':'<span class="cart__img"></span>')
+        +'<div class="cart__info"><p class="cart__t"><a href="'+href+'">'+esc(l.t)+'</a></p>'
+        +'<p class="cart__o">'+esc(pretty(l.o))+'</p>'
+        +(l.off?'<p class="cart__warn">No longer available. Remove it to check out.</p>':(l.was?'<p class="cart__warn">Price updated from '+inr(l.was)+'.</p>':''))
+        +'<div class="cart__ctl"><div class="qty" role="group" aria-label="Quantity of '+esc(l.t)+'">'
+        +'<button type="button" data-q="-1" aria-label="One fewer">&minus;</button><span class="num" aria-live="polite">'+l.q+'</span>'
+        +'<button type="button" data-q="1" aria-label="One more">+</button></div>'
+        +'<button type="button" class="cart__rm">Remove</button></div></div>'
+        +'<p class="cart__p num">'+inr(l.p*l.q)+'</p>';
+      el.querySelectorAll('[data-q]').forEach(function(q){ q.addEventListener('click', function(){
+        var c=read(), d=parseInt(q.getAttribute('data-q'),10); if(!c[i]) return;
+        c[i].q=Math.max(0,Math.min(20,c[i].q+d)); delete c[i].was; if(!c[i].q) c.splice(i,1); write(c);
+        var again=lines.querySelectorAll('.cart__line')[i]; var t=again&&again.querySelector('[data-q="'+d+'"]'); if(t) t.focus();
+      }) });
+      el.querySelector('.cart__rm').addEventListener('click', function(){ var c=read(); c.splice(i,1); write(c); (cart.querySelector('.drawer__x')||cart).focus(); });
+      lines.appendChild(el);
     });
     total.textContent=inr(sum);
-    if(btn){ btn.hidden = !b.length; if(count) count.textContent=b.reduce(function(n,l){return n+l.q},0); }
-    // Shopify takes a cart permalink, so the real checkout gets the real ids
-    go.setAttribute('href', b.length
-      ? STORE+'/cart/'+b.map(function(l){ return l.id+':'+l.q }).join(',')
-      : STORE+'/collections/all');
+    if(goods) goods.hidden=!hasGoods;
+    if(note) note.textContent = (hasGoods?'Coffee is roasted after you order and dispatched in 3–5 business days. ':'')
+      +(live.some(function(l){ return l.h===TOUR })?'Tour tickets are collected at the Cauvery Peak café on the day. ':'')
+      +'Payment is taken on the estate’s Shopify checkout.';
+    if(btn){ if(count) count.textContent=n; btn.setAttribute('aria-label','Basket, '+n+' item'+(n===1?'':'s')); }
+    // Shopify cart permalink: real variant ids, plus tour date/departure as cart attributes
+    var blocked=b.some(function(l){ return l.off }), qs=[];
+    live.forEach(function(l){ if(l.a){ qs.push('attributes%5BTour%20date%5D='+encodeURIComponent(l.a.date)); qs.push('attributes%5BTour%20departure%5D='+encodeURIComponent(l.a.slot)); } });
+    go.setAttribute('href', live.length&&!blocked ? STORE+'/cart/'+live.map(function(l){ return l.id+':'+l.q }).join(',')+(qs.length?'?'+qs.join('&'):'') : STORE+'/collections/all');
+    go.classList.toggle('is-disabled', !live.length||blocked);
+    if(!live.length||blocked) go.setAttribute('aria-disabled','true'); else go.removeAttribute('aria-disabled');
   }
-  function open(){ last=document.activeElement; cart.classList.add('is-open');
+  go.addEventListener('click', function(e){ if(go.getAttribute('aria-disabled')) e.preventDefault(); });
+  var bg=function(on){ document.querySelectorAll('body > *:not(#cart)').forEach(function(el){ if(on) el.setAttribute('inert',''); else el.removeAttribute('inert'); }) };
+  function open(){ last=document.activeElement; cart.classList.add('is-open'); bg(true);
     document.documentElement.classList.add('no-scroll');
-    (cart.querySelector('button,a')||cart).focus(); document.addEventListener('keydown',key,true); }
-  function close(){ cart.classList.remove('is-open');
+    (cart.querySelector('.drawer__x')||cart).focus(); document.addEventListener('keydown',key,true); }
+  function close(){ cart.classList.remove('is-open'); bg(false);
     document.documentElement.classList.remove('no-scroll');
-    document.removeEventListener('keydown',key,true); if(last) last.focus(); }
-  function key(e){ if(e.key==='Escape'){ e.preventDefault(); close(); } }
+    document.removeEventListener('keydown',key,true); if(last&&last.focus) last.focus(); }
+  function key(e){
+    if(e.key==='Escape'){ e.preventDefault(); close(); return; }
+    if(e.key!=='Tab') return;
+    // keep focus inside the drawer while it is open
+    var f=[].filter.call(cart.querySelectorAll('a[href],button:not([disabled]),input,select'), function(x){ return x.offsetParent!==null });
+    if(!f.length) return;
+    var first=f[0], end=f[f.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); end.focus(); }
+    else if(!e.shiftKey && document.activeElement===end){ e.preventDefault(); first.focus(); }
+  }
   cart.addEventListener('click', function(e){ if(e.target.closest('[data-cclose]')) close(); });
   if(btn) btn.addEventListener('click', open);
+  window.addEventListener('storage', function(e){ if(e.key===KEY) paint() });
   paint();
 })();
 </script>"""
@@ -653,7 +792,7 @@ def document(slug, title, desc, og, body):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#16261C">
+<meta name="theme-color" content="#002D3E">
 <script>document.documentElement.className="js"</script>
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -684,8 +823,9 @@ def document(slug, title, desc, og, body):
 {closer(slug)}
 </main>
 {footer()}
-{STICKY_BUY + STICKY_BUY_JS if 'class="pdp' in body else STICKY + STICKY_JS}
+{STICKY_BUY + STICKY_BUY_JS if 'class="pdp' in body else ('' if 'class="schips' in body else STICKY + STICKY_JS)}
 {CART}
+{PRICE_MAP}
 {MENU_JS}
 {SHOP_JS}
 <script src="{v('assets/motion.js')}" defer></script>
